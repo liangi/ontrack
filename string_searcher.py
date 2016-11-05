@@ -16,7 +16,7 @@ def es_find(df, pattern, regex=False):
     self.corpus must be a dataframe with a column whose name is specified 
     in the "on" argument.
 
-    Returns a dictionary.
+    Returns the dfA row numbers of satisfactory rows in dfB.
     '''
     found = df[df.str.contains(str(pattern), case=False, regex=regex)].index  
     return found
