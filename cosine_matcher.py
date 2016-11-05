@@ -23,9 +23,6 @@ class CosineMatcher(object):
         We aren't using TfidfVectorizer's built-in tokenizer and stop/stem 
         functionality because we have chosen to pre-process that text and will 
         be running other types of matching on the stop/stemmed text. 
-
-        This code assumes that you have already cleaned & processed the text corpus. 
-
         '''
         self.match_corpus = None
         self.matrix = None 
@@ -39,7 +36,6 @@ class CosineMatcher(object):
         Fit the training corpus to the TF-IDF Vectorizer.
 
         corpus: A hashable object containing the searchspace strings
-        train_on: Name of the column in the CSV.
         '''
         
 #        self.match_corpus = corpus[corpus.notnull()]
