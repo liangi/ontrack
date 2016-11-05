@@ -25,39 +25,42 @@ Not sure what to do? More detailed instructions [here](https://github.com/thinki
 ### Usage ###
 
 This example will find records matching "Rehabilitation/Reconstruction/Removal of Gravel on Bulacan, Road. North km+1993-km+384" in the database **path-to-file.csv**. 
-#### 1. Prepare text query.
-```python
-from text_cleaners import clean_text
-    
-query = "Rehabilitation/Reconstruction/Removal of Gravel on Bulacan, Road. North km+1993-km+384"  
-coreQuery = clean_text(query)
-print coreQuery
+#### 1. Prepare your query.
+OnTrack accepts the following as input:  
 
->>> "rehabilit reconstruct remov gravel bulacan road north km 1993 km 384"
-```
-#### 2. Create String Searcher and Cosine Matcher objects.
+ - list of strings
+ - pandas DataFrame
+ - csv filepath, accessed using `read()`
 ```python
-from string_searcher import StringSearcher  
-from cosine_matcher import CosineMatcher  
+db_A1 = ['Laoag', 'Construction'] # two separate queries
+db_A2 = pd.DataFrame([['Laoag', 'Construction', 'unhelpful column'],
+                      ['Bohol', 'Rehabilitation', 'unhelpful column'],
+                      ['Quezon City', 'Construction', 'unhelpful column']]) # three rows/queries
 
-str_search = StringSearcher()  
-cos_match = CosineMatcher()
+df_B = read('small.csv')
 ```
-#### 3. Set search space corpus.
+#### 2. Find records with exact, case-insensitive substring matches from a specific column in the corpus.
 ```python
-str_search.set_corpus('path-to-file.csv')  
-cos_match.train('path-to-file.csv', train_on='column_name')
+matches1 = find_exact(db_A1, dbB)
+
+matches2 = find_exact(db_A2, dbB, colA=[0,1], colB=['contract_desc', 'implementing_office'], fname='exact2') # the result will be outputted in a csv with the default name 'exact matches.csv'
 ```
-#### 4. Find records with exact, case-insensitive substring matches from a specific column in the corpus.
+For `matches1`,  the result will be outputted in a csv with the default name 'exact matches.csv'
+For `matches2`, since fname was specified, results will be saved in 'exact2.csv'. Filling in the parameters `colA` and `colB` means specific columns are selected; 0 and 1 are the column number of the helpful columns in `db_A2`, contract_desc and	implementing_office are the important headers in `db_B` ('small.csv').
+
+If colA and colB are not specified, `find_exact` will use all columns.
+
+#### 3. Find top 5 records with the highest cosine similarity score.
 ```python
-matches1 = str_search.find('Query String', on='column_name')
-print matches1
+matches1 = find_closest(db_A1, df_B)    
+
+matches2 = find_closest(db_A2, df_B, n=10, cleaner=None)
 ```
-#### 5. Find top 5 records with the highest cosine similarity score.
-```python
-matches2 = cos_match.check_matches(clean_query, 5)
-print matches2
-```
+The result from the first line will be saved in 'closest match.csv'.
+
+Since no file name was specified, 'closest match.csv' will be overwritten by the result of the second line. You can choose to increase/decrease the number of best matches displayed (default: 5) by changing n. Setting cleaner to None means that either the input databases were precleaned, or you choose not to keep them in their raw format.
+
+More detailed instructions are available in the [wiki](https://github.com/thinkingmachines/ontrack/wiki).
 
 ### Motivation ###
 
