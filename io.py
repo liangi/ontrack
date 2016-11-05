@@ -1,3 +1,13 @@
+'''
+Interfaces with the rest of the OnTrack package.
+
+SAMPLE USAGE:
+dfA = read('looking_for.csv')
+dfB = read('looking_in.csv')
+
+results = find_closest(dfA, dfB)
+'''
+
 import pandas as pd
 
 from text_cleaners import clean_text
@@ -6,23 +16,73 @@ from string_searcher import es_find
 
 cos_match = CosineMatcher()
 
-def read(path, keep_columns='', encoding='latin-1'): #all other columns will be discarded
-    df = pd.read_csv(path, encoding=encoding, error_bad_lines=False)
-    df = df.dropna(axis=0)
-    return df
+def read(path, keep_columns='', encoding='latin-1'):
+    '''
+    Transforms a csv file into the format used by OnTrack (pandas DataFrame).
     
-def clean_subset(df, cols='', cleaner=clean_text):
+    Input
+    path: The csv filepath.
+    keep_columns: The columns of the csv which should appear in the output files.
+    encoding: The encoding used by the csv file.
+    
+    Output
+    Pandas DataFrame
+    '''
+    if keep_columns:
+        try:
+            db = pd.read_csv(path, usecols=[keep_columns], encoding=encoding, error_bad_lines=False)
+        except ValueError:
+            db = pd.read_csv(path, encoding=encoding, error_bad_lines=False)
+            print "The columns provided are invalid. All columns will be kept."
+    else:
+        db = pd.read_csv(path, encoding=encoding, error_bad_lines=False)
+    db = db.dropna(axis=0)
+    return db
+    
+def clean_subset(db, cols='', cleaner=clean_text):
+    '''
+    Concatenates and cleans a columnar subset of df.
+    
+    Input
+    db: A database.
+    cols: The subset you wish to keep in the output csv. 
+          Entries should always be enclosed by brackets, e.g. ['id'] or ['id1', 'id2']
+    cleaner: Desired cleaner, by default set to OnTrack's text cleaner. 
+             Set to None if the DataFrame has already been cleaned.
+    
+    Output
+    A pandas Series containing the transformed strings.
+    '''
     if cols:
         try:
-            df = df[cols]
+            db = db[cols]
         except KeyError:
             print "At least one of the columns you entered is not in the given database. The whole database will be kept."
-    df = df.astype('unicode').apply((lambda x: ' '.join(x)), axis=1)
+    db = db.astype('unicode').apply((lambda x: ' '.join(x)), axis=1)
     if cleaner:
-        df = df.apply(cleaner)
-    return df
+        db = db.apply(cleaner)
+    return db
 
 def find_exact(dbA, dbB, colA='', colB='', regex=False, cleaner=clean_text, fname='exact search'):
+    '''
+    Finds exact matches of dbA terms in dbB.
+    
+    Input
+    dfA: The database containing terms you're looking for.
+    dfB: The database you're looking in for dbA's terms.
+    colA: Columns which should be used in dbA. 
+          Entries hould always be enclosed by brackets, e.g. ['id'] or ['id1', 'id2']
+    colB: Columns which should be used in dbB. 
+          Entries hould always be enclosed by brackets, e.g. ['id'] or ['id1', 'id2']
+    regex: Set to True to use dbA search terms as regex patterns.
+    cleaner: Desired cleaner, by default set to OnTrack's text cleaner. 
+             Set to None if the DataFrame has already been cleaned.
+    fname: The desired filename of the output csv files.
+    
+    Output
+    Pandas DataFrame containing matches found.
+    Two csv outputs: dfA-dfB matches and dfA rows that had no matches.
+    '''
     dbA = pd.DataFrame(dbA, index=range(len(dbA)))
     dbB = pd.DataFrame(dbB, index=range(len(dbB)))
     if cleaner:
@@ -44,6 +104,27 @@ def find_exact(dbA, dbB, colA='', colB='', regex=False, cleaner=clean_text, fnam
     return results
 
 def find_closest(dbA, dbB, colA='', colB='', n=5, cleaner=clean_text, fname='closest match'):
+    '''
+    Takes dbA terms and uses cosine matching to find dbB rows which closely match dbA terms.
+    Default behavior: returns a maximum of five best matches.
+    
+    Input
+    dfA: The database containing terms you're looking for.
+    dfB: The database you're looking in for dbA's terms.
+    colA: Columns which should be used in dbA. 
+          Entries hould always be enclosed by brackets, e.g. ['id'] or ['id1', 'id2']
+    colB: Columns which should be used in dbB. 
+          Entries hould always be enclosed by brackets, e.g. ['id'] or ['id1', 'id2']
+    n: The maximum number of closest matches reported per dbA row.
+    regex: Set to True to use dbA search terms as regex patterns.
+    cleaner: Desired cleaner, by default set to OnTrack's text cleaner. 
+             Set to None if the DataFrame has already been cleaned.
+    fname: The desired filename of the output csv files.
+    
+    Output
+    Pandas DataFrame containing matches found.
+    Two csv outputs: dfA-dfB matches and dfA rows that had no matches.
+    '''
     dbA = pd.DataFrame(dbA, index=range(len(dbA)))
     dbB = pd.DataFrame(dbB, index=range(len(dbB)))
     if cleaner:        
