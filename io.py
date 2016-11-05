@@ -81,7 +81,7 @@ def find_exact(dbA, dbB, colA='', colB='', regex=False, cleaner=clean_text, fnam
     
     Output
     Pandas DataFrame containing matches found.
-    Two csv outputs: dfA-dfB matches and dfA rows that had no matches.
+    Csv output: dfA-dfB matches.
     '''
     dbA = pd.DataFrame(dbA, index=range(len(dbA)))
     dbB = pd.DataFrame(dbB, index=range(len(dbB)))
