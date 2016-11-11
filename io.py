@@ -36,7 +36,7 @@ def read(path, keep_columns='', encoding='latin-1'):
             print "The columns provided are invalid. All columns will be kept."
     else:
         db = pd.read_csv(path, encoding=encoding, error_bad_lines=False)
-    db = db.dropna(axis=0)
+    db = db.dropna(axis=1)
     return db
     
 def clean_subset(db, cols='', cleaner=clean_text):
